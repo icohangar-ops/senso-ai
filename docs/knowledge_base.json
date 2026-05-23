@@ -1,0 +1,760 @@
+{
+  "version": "1.0.0",
+  "generated": "2025-05-24",
+  "total_repos": 15,
+  "repos": {
+    "healthguard-ai": {
+      "domain": "Healthcare",
+      "description": "Health Intelligence Platform \u2014 7-tab dashboard with ClickHouse 10 UDFs",
+      "languages": [
+        "TypeScript",
+        "SQL"
+      ],
+      "frameworks": [
+        "Next.js 16",
+        "Tailwind CSS 4",
+        "shadcn/ui",
+        "Recharts"
+      ],
+      "platforms": [
+        "ClickHouse Cloud",
+        "Vercel"
+      ],
+      "integrations": [
+        "ClickHouse Cloud",
+        "Nimble SDK",
+        "RapidReview Papyrus",
+        "Datadog Lapdog"
+      ],
+      "patterns": [
+        "synthetic-fallback",
+        "multi-tab-dashboard",
+        "dark-theme",
+        "server-side-proxy",
+        "udf-queries"
+      ],
+      "license": "MIT"
+    },
+    "cfo-resilience-matrix": {
+      "domain": "CFO & Finance",
+      "description": "6-Layer AI Agent Resilience for CFO Operations",
+      "languages": [
+        "Python"
+      ],
+      "frameworks": [
+        "TrueFoundry AI Gateway"
+      ],
+      "platforms": [],
+      "integrations": [
+        "OpenAI",
+        "Claude",
+        "Gemini",
+        "TrueFoundry"
+      ],
+      "patterns": [
+        "multi-provider-failover",
+        "circuit-breaker",
+        "semantic-cache",
+        "dead-letter-queue"
+      ],
+      "license": "Apache 2.0"
+    },
+    "cfo-command-center": {
+      "domain": "CFO & Finance",
+      "description": "AI-Powered Finance Operations Hub on Notion",
+      "languages": [
+        "TypeScript"
+      ],
+      "frameworks": [
+        "Notion API"
+      ],
+      "platforms": [
+        "Notion"
+      ],
+      "integrations": [
+        "Notion API"
+      ],
+      "patterns": [
+        "notion-native",
+        "ai-agents"
+      ],
+      "license": "MIT"
+    },
+    "cash-flow-optimizer": {
+      "domain": "CFO & Finance",
+      "description": "Vellum-powered cash flow intelligence with Xero, Precoro, Outlook",
+      "languages": [
+        "TypeScript"
+      ],
+      "frameworks": [
+        "Vellum AI"
+      ],
+      "platforms": [],
+      "integrations": [
+        "Xero API",
+        "Precoro API",
+        "Microsoft Graph API",
+        "Vellum"
+      ],
+      "patterns": [
+        "cron-triggers",
+        "llm-narrative",
+        "3-way-match",
+        "guardrail-node"
+      ],
+      "license": "MIT"
+    },
+    "p2p-copilot": {
+      "domain": "CFO & Finance",
+      "description": "AI-Powered Procure-to-Pay on UiPath Maestro BPMN",
+      "languages": [
+        "Python"
+      ],
+      "frameworks": [
+        "UiPath Maestro (BPMN)"
+      ],
+      "platforms": [
+        "UiPath"
+      ],
+      "integrations": [
+        "Claude Vision API",
+        "UiPath Maestro",
+        "UiPath Action Center"
+      ],
+      "patterns": [
+        "bpmn-orchestration",
+        "ai-vision-extraction",
+        "anomaly-detection",
+        "audit-trail"
+      ],
+      "license": "MIT"
+    },
+    "battery-erp": {
+      "domain": "Commodity & Mining",
+      "description": "Battery value chain ERP with Fabric Lakehouse analytics",
+      "languages": [
+        "Python"
+      ],
+      "frameworks": [
+        "Microsoft Fabric"
+      ],
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "integrations": [
+        "AlphaVantage",
+        "FRED",
+        "Microsoft Fabric Lakehouse"
+      ],
+      "patterns": [
+        "medallion-architecture",
+        "bom-rollup",
+        "supplier-scoring",
+        "what-if-scenario"
+      ],
+      "license": "MIT"
+    },
+    "databricks-commodity-risk-engine": {
+      "domain": "Commodity & Mining",
+      "description": "Delta Lake + MLflow + VaR + Margin Analytics on Databricks",
+      "languages": [
+        "Python",
+        "SQL"
+      ],
+      "frameworks": [
+        "Databricks",
+        "MLflow",
+        "scikit-learn"
+      ],
+      "platforms": [
+        "Databricks"
+      ],
+      "integrations": [
+        "Databricks REST API"
+      ],
+      "patterns": [
+        "medallion-architecture",
+        "var-analytics",
+        "mlflow-tracking",
+        "parametric-risk"
+      ],
+      "license": "MIT"
+    },
+    "databricks-lakehouse-intelligence": {
+      "domain": "Commodity & Mining",
+      "description": "Mining & metals analytics with Unity Catalog on Databricks",
+      "languages": [
+        "Python",
+        "SQL"
+      ],
+      "frameworks": [
+        "Databricks",
+        "MLflow",
+        "Unity Catalog"
+      ],
+      "platforms": [
+        "Databricks"
+      ],
+      "integrations": [
+        "Databricks REST API v2.0"
+      ],
+      "patterns": [
+        "medallion-architecture",
+        "unity-catalog",
+        "composite-signals",
+        "esg-scoring"
+      ],
+      "license": "MIT"
+    },
+    "snowflake-commodity-supply-chain": {
+      "domain": "Commodity & Mining",
+      "description": "Contract pricing & risk analytics on Snowflake + dbt",
+      "languages": [
+        "Python",
+        "SQL"
+      ],
+      "frameworks": [
+        "Snowflake",
+        "dbt"
+      ],
+      "platforms": [
+        "Snowflake"
+      ],
+      "integrations": [
+        "Snowpark"
+      ],
+      "patterns": [
+        "dynamic-tables",
+        "zero-copy-clone",
+        "dynamic-masking",
+        "row-access-policy"
+      ],
+      "license": "MIT"
+    },
+    "snowflake-cortex-research": {
+      "domain": "Commodity & Mining",
+      "description": "AI-powered earnings & filing analytics with Cortex AI + dbt",
+      "languages": [
+        "Python",
+        "SQL"
+      ],
+      "frameworks": [
+        "Snowflake Cortex AI",
+        "dbt"
+      ],
+      "platforms": [
+        "Snowflake"
+      ],
+      "integrations": [
+        "SEC EDGAR"
+      ],
+      "patterns": [
+        "cortex-ai-nlp",
+        "dynamic-tables",
+        "streams-tasks",
+        "zero-copy-clone"
+      ],
+      "license": "MIT"
+    },
+    "metacomp-visionx-dashboard": {
+      "domain": "Security & Blockchain",
+      "description": "Crypto AML/KYT compliance dashboard (4 vendor cross-validation)",
+      "languages": [
+        "TypeScript"
+      ],
+      "frameworks": [
+        "Next.js 16",
+        "Tailwind CSS 4"
+      ],
+      "platforms": [],
+      "integrations": [
+        "MetaComp Vision X API",
+        "Chainalysis",
+        "Beosin",
+        "Elliptic",
+        "Merkle Science"
+      ],
+      "patterns": [
+        "multi-vendor-validation",
+        "dark-theme",
+        "risk-cross-validation"
+      ],
+      "license": "MIT"
+    },
+    "shieldgate": {
+      "domain": "Security & Blockchain",
+      "description": "Least-privilege agentic SOC (AuthZed SpiceDB \u00d7 Splunk)",
+      "languages": [
+        "TypeScript"
+      ],
+      "frameworks": [
+        "Next.js 16",
+        "AuthZed/SpiceDB"
+      ],
+      "platforms": [],
+      "integrations": [
+        "AuthZed",
+        "Splunk (MCP)"
+      ],
+      "patterns": [
+        "zero-trust",
+        "mcp-protocol",
+        "least-privilege",
+        "blast-radius-control"
+      ],
+      "license": "MIT"
+    },
+    "courtvision-ai": {
+      "domain": "Security & Blockchain",
+      "description": "AI-powered NBA prediction market on Polygon Azuro Protocol",
+      "languages": [
+        "TypeScript",
+        "Solidity"
+      ],
+      "frameworks": [
+        "Next.js",
+        "React",
+        "FastAPI"
+      ],
+      "platforms": [
+        "Polygon"
+      ],
+      "integrations": [
+        "Azuro Protocol",
+        "Qwen LLM (DashScope)"
+      ],
+      "patterns": [
+        "on-chain-betting",
+        "ai-sports-analysis",
+        "smart-contracts"
+      ],
+      "license": "MIT"
+    },
+    "greenverify-ai": {
+      "domain": "Security & Blockchain",
+      "description": "AI carbon credit verification & trading (Rust ink! + Next.js)",
+      "languages": [
+        "TypeScript",
+        "Python",
+        "Rust"
+      ],
+      "frameworks": [
+        "Next.js 16",
+        "ink! 5.0"
+      ],
+      "platforms": [
+        "Portaldot (DoraHacks)"
+      ],
+      "integrations": [
+        "Substrate/ink!"
+      ],
+      "patterns": [
+        "ai-verification",
+        "on-chain-trading",
+        "multi-tab-dashboard"
+      ],
+      "license": "MIT"
+    },
+    "first-principles-product-incubator": {
+      "domain": "Innovation",
+      "description": "Structured innovation workspace (ideation to validated MVP)",
+      "languages": [
+        "TypeScript"
+      ],
+      "frameworks": [
+        "Next.js",
+        "Bun"
+      ],
+      "platforms": [],
+      "integrations": [],
+      "patterns": [
+        "first-principles-thinking",
+        "5-phase-workflow",
+        "hypothesis-validation"
+      ],
+      "license": "MIT"
+    }
+  },
+  "analytics": {
+    "by_domain": {
+      "Healthcare": 1,
+      "CFO & Finance": 4,
+      "Commodity & Mining": 5,
+      "Security & Blockchain": 4,
+      "Innovation": 1
+    },
+    "languages": {
+      "TypeScript": 8,
+      "Python": 8,
+      "SQL": 5,
+      "Solidity": 1,
+      "Rust": 1
+    },
+    "frameworks": {
+      "Next.js 16": 4,
+      "Tailwind CSS 4": 2,
+      "Databricks": 2,
+      "MLflow": 2,
+      "dbt": 2,
+      "Next.js": 2,
+      "shadcn/ui": 1,
+      "Recharts": 1,
+      "TrueFoundry AI Gateway": 1,
+      "Notion API": 1,
+      "Vellum AI": 1,
+      "UiPath Maestro (BPMN)": 1,
+      "Microsoft Fabric": 1,
+      "scikit-learn": 1,
+      "Unity Catalog": 1,
+      "Snowflake": 1,
+      "Snowflake Cortex AI": 1,
+      "AuthZed/SpiceDB": 1,
+      "React": 1,
+      "FastAPI": 1,
+      "ink! 5.0": 1,
+      "Bun": 1
+    },
+    "integrations": {
+      "ClickHouse Cloud": 1,
+      "Nimble SDK": 1,
+      "RapidReview Papyrus": 1,
+      "Datadog Lapdog": 1,
+      "OpenAI": 1,
+      "Claude": 1,
+      "Gemini": 1,
+      "TrueFoundry": 1,
+      "Notion API": 1,
+      "Xero API": 1,
+      "Precoro API": 1,
+      "Microsoft Graph API": 1,
+      "Vellum": 1,
+      "Claude Vision API": 1,
+      "UiPath Maestro": 1,
+      "UiPath Action Center": 1,
+      "AlphaVantage": 1,
+      "FRED": 1,
+      "Microsoft Fabric Lakehouse": 1,
+      "Databricks REST API": 1,
+      "Databricks REST API v2.0": 1,
+      "Snowpark": 1,
+      "SEC EDGAR": 1,
+      "MetaComp Vision X API": 1,
+      "Chainalysis": 1,
+      "Beosin": 1,
+      "Elliptic": 1,
+      "Merkle Science": 1,
+      "AuthZed": 1,
+      "Splunk (MCP)": 1,
+      "Azuro Protocol": 1,
+      "Qwen LLM (DashScope)": 1,
+      "Substrate/ink!": 1
+    },
+    "patterns": {
+      "medallion-architecture": 3,
+      "multi-tab-dashboard": 2,
+      "dark-theme": 2,
+      "dynamic-tables": 2,
+      "zero-copy-clone": 2,
+      "synthetic-fallback": 1,
+      "server-side-proxy": 1,
+      "udf-queries": 1,
+      "multi-provider-failover": 1,
+      "circuit-breaker": 1,
+      "semantic-cache": 1,
+      "dead-letter-queue": 1,
+      "notion-native": 1,
+      "ai-agents": 1,
+      "cron-triggers": 1,
+      "llm-narrative": 1,
+      "3-way-match": 1,
+      "guardrail-node": 1,
+      "bpmn-orchestration": 1,
+      "ai-vision-extraction": 1,
+      "anomaly-detection": 1,
+      "audit-trail": 1,
+      "bom-rollup": 1,
+      "supplier-scoring": 1,
+      "what-if-scenario": 1,
+      "var-analytics": 1,
+      "mlflow-tracking": 1,
+      "parametric-risk": 1,
+      "unity-catalog": 1,
+      "composite-signals": 1,
+      "esg-scoring": 1,
+      "dynamic-masking": 1,
+      "row-access-policy": 1,
+      "cortex-ai-nlp": 1,
+      "streams-tasks": 1,
+      "multi-vendor-validation": 1,
+      "risk-cross-validation": 1,
+      "zero-trust": 1,
+      "mcp-protocol": 1,
+      "least-privilege": 1,
+      "blast-radius-control": 1,
+      "on-chain-betting": 1,
+      "ai-sports-analysis": 1,
+      "smart-contracts": 1,
+      "ai-verification": 1,
+      "on-chain-trading": 1,
+      "first-principles-thinking": 1,
+      "5-phase-workflow": 1,
+      "hypothesis-validation": 1
+    }
+  },
+  "pattern_index": {
+    "3-way-match": [
+      "cash-flow-optimizer"
+    ],
+    "5-phase-workflow": [
+      "first-principles-product-incubator"
+    ],
+    "ai-agents": [
+      "cfo-command-center"
+    ],
+    "ai-sports-analysis": [
+      "courtvision-ai"
+    ],
+    "ai-verification": [
+      "greenverify-ai"
+    ],
+    "ai-vision-extraction": [
+      "p2p-copilot"
+    ],
+    "anomaly-detection": [
+      "p2p-copilot"
+    ],
+    "audit-trail": [
+      "p2p-copilot"
+    ],
+    "blast-radius-control": [
+      "shieldgate"
+    ],
+    "bom-rollup": [
+      "battery-erp"
+    ],
+    "bpmn-orchestration": [
+      "p2p-copilot"
+    ],
+    "circuit-breaker": [
+      "cfo-resilience-matrix"
+    ],
+    "composite-signals": [
+      "databricks-lakehouse-intelligence"
+    ],
+    "cortex-ai-nlp": [
+      "snowflake-cortex-research"
+    ],
+    "cron-triggers": [
+      "cash-flow-optimizer"
+    ],
+    "dark-theme": [
+      "healthguard-ai",
+      "metacomp-visionx-dashboard"
+    ],
+    "dead-letter-queue": [
+      "cfo-resilience-matrix"
+    ],
+    "dynamic-masking": [
+      "snowflake-commodity-supply-chain"
+    ],
+    "dynamic-tables": [
+      "snowflake-commodity-supply-chain",
+      "snowflake-cortex-research"
+    ],
+    "esg-scoring": [
+      "databricks-lakehouse-intelligence"
+    ],
+    "first-principles-thinking": [
+      "first-principles-product-incubator"
+    ],
+    "guardrail-node": [
+      "cash-flow-optimizer"
+    ],
+    "hypothesis-validation": [
+      "first-principles-product-incubator"
+    ],
+    "least-privilege": [
+      "shieldgate"
+    ],
+    "llm-narrative": [
+      "cash-flow-optimizer"
+    ],
+    "mcp-protocol": [
+      "shieldgate"
+    ],
+    "medallion-architecture": [
+      "battery-erp",
+      "databricks-commodity-risk-engine",
+      "databricks-lakehouse-intelligence"
+    ],
+    "mlflow-tracking": [
+      "databricks-commodity-risk-engine"
+    ],
+    "multi-provider-failover": [
+      "cfo-resilience-matrix"
+    ],
+    "multi-tab-dashboard": [
+      "healthguard-ai",
+      "greenverify-ai"
+    ],
+    "multi-vendor-validation": [
+      "metacomp-visionx-dashboard"
+    ],
+    "notion-native": [
+      "cfo-command-center"
+    ],
+    "on-chain-betting": [
+      "courtvision-ai"
+    ],
+    "on-chain-trading": [
+      "greenverify-ai"
+    ],
+    "parametric-risk": [
+      "databricks-commodity-risk-engine"
+    ],
+    "risk-cross-validation": [
+      "metacomp-visionx-dashboard"
+    ],
+    "row-access-policy": [
+      "snowflake-commodity-supply-chain"
+    ],
+    "semantic-cache": [
+      "cfo-resilience-matrix"
+    ],
+    "server-side-proxy": [
+      "healthguard-ai"
+    ],
+    "smart-contracts": [
+      "courtvision-ai"
+    ],
+    "streams-tasks": [
+      "snowflake-cortex-research"
+    ],
+    "supplier-scoring": [
+      "battery-erp"
+    ],
+    "synthetic-fallback": [
+      "healthguard-ai"
+    ],
+    "udf-queries": [
+      "healthguard-ai"
+    ],
+    "unity-catalog": [
+      "databricks-lakehouse-intelligence"
+    ],
+    "var-analytics": [
+      "databricks-commodity-risk-engine"
+    ],
+    "what-if-scenario": [
+      "battery-erp"
+    ],
+    "zero-copy-clone": [
+      "snowflake-commodity-supply-chain",
+      "snowflake-cortex-research"
+    ],
+    "zero-trust": [
+      "shieldgate"
+    ]
+  },
+  "integration_index": {
+    "AlphaVantage": [
+      "battery-erp"
+    ],
+    "AuthZed": [
+      "shieldgate"
+    ],
+    "Azuro Protocol": [
+      "courtvision-ai"
+    ],
+    "Beosin": [
+      "metacomp-visionx-dashboard"
+    ],
+    "Chainalysis": [
+      "metacomp-visionx-dashboard"
+    ],
+    "Claude": [
+      "cfo-resilience-matrix"
+    ],
+    "Claude Vision API": [
+      "p2p-copilot"
+    ],
+    "ClickHouse Cloud": [
+      "healthguard-ai"
+    ],
+    "Databricks REST API": [
+      "databricks-commodity-risk-engine"
+    ],
+    "Databricks REST API v2.0": [
+      "databricks-lakehouse-intelligence"
+    ],
+    "Datadog Lapdog": [
+      "healthguard-ai"
+    ],
+    "Elliptic": [
+      "metacomp-visionx-dashboard"
+    ],
+    "FRED": [
+      "battery-erp"
+    ],
+    "Gemini": [
+      "cfo-resilience-matrix"
+    ],
+    "Merkle Science": [
+      "metacomp-visionx-dashboard"
+    ],
+    "MetaComp Vision X API": [
+      "metacomp-visionx-dashboard"
+    ],
+    "Microsoft Fabric Lakehouse": [
+      "battery-erp"
+    ],
+    "Microsoft Graph API": [
+      "cash-flow-optimizer"
+    ],
+    "Nimble SDK": [
+      "healthguard-ai"
+    ],
+    "Notion API": [
+      "cfo-command-center"
+    ],
+    "OpenAI": [
+      "cfo-resilience-matrix"
+    ],
+    "Precoro API": [
+      "cash-flow-optimizer"
+    ],
+    "Qwen LLM (DashScope)": [
+      "courtvision-ai"
+    ],
+    "RapidReview Papyrus": [
+      "healthguard-ai"
+    ],
+    "SEC EDGAR": [
+      "snowflake-cortex-research"
+    ],
+    "Snowpark": [
+      "snowflake-commodity-supply-chain"
+    ],
+    "Splunk (MCP)": [
+      "shieldgate"
+    ],
+    "Substrate/ink!": [
+      "greenverify-ai"
+    ],
+    "TrueFoundry": [
+      "cfo-resilience-matrix"
+    ],
+    "UiPath Action Center": [
+      "p2p-copilot"
+    ],
+    "UiPath Maestro": [
+      "p2p-copilot"
+    ],
+    "Vellum": [
+      "cash-flow-optimizer"
+    ],
+    "Xero API": [
+      "cash-flow-optimizer"
+    ]
+  }
+}
