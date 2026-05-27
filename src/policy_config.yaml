@@ -1,0 +1,435 @@
+# =============================================================================
+# Auth0 FGA Policy Configuration for senso-ai Knowledge Base
+# =============================================================================
+#
+# This file defines the complete authorization model and policy configuration
+# for the senso-ai enterprise AI knowledge base.  It is used by the Auth0 FGA
+# service to enforce fine-grained access control over 15 specialized AI/ML
+# repositories.
+#
+# Auth0 Domain: dev-c3wp4h1e4gv0t64i.us.auth0.com
+# Schema Version: 1.1 (Cedar policy language)
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# Authorization Model
+# ---------------------------------------------------------------------------
+# Defines the five resource types in the knowledge base hierarchy:
+#
+#   organization
+#     └── repository (15 repos)
+#           └── document
+#                 └── section
+#                       └── code_block
+#
+# Each resource type inherits access from its parent.  For example, a user
+# who is a "viewer" on a repository automatically gains "viewer" on every
+# document inside that repository (unless overridden).
+# ---------------------------------------------------------------------------
+
+authorization_model:
+  schema_version: "1.1"
+  type_definitions:
+
+    # ---- Organization --------------------------------------------------------
+    # Top-level container.  All users in the organization implicitly inherit
+    # member-level access.
+    - type: organization
+      relations:
+        owner:
+          directly_related_user_types:
+            - type: user
+        admin:
+          # Admins include owners plus directly-assigned admins.
+          union:
+            - child: owner
+            - directly_related_user_types:
+                - type: user
+        member:
+          # Every admin is a member; additionally, individual users can be
+          # explicitly added as members.
+          union:
+            - child: admin
+            - directly_related_user_types:
+                - type: user
+      permissions:
+        can_read:
+          union:
+            - child: member
+        can_edit:
+          union:
+            - child: admin
+        can_delete:
+          union:
+            - child: owner
+        can_share:
+          union:
+            - child: admin
+        can_query:
+          union:
+            - child: member
+
+    # ---- Repository ----------------------------------------------------------
+    # Each of the 15 AI/ML repositories is a "repository" resource.  Access
+    # is inherited from the parent organization via the "organization"
+    # relation.  Users can also be directly assigned roles on a repo.
+    - type: repository
+      relations:
+        owner:
+          directly_related_user_types:
+            - type: user
+        admin:
+          union:
+            - child: owner
+            - directly_related_user_types:
+                - type: user
+        editor:
+          union:
+            - child: admin
+            - directly_related_user_types:
+                - type: user
+        viewer:
+          union:
+            - child: editor
+            - directly_related_user_types:
+                - type: user
+            # Inherit from parent organization's members.
+            - computedUserset:
+                relation: member
+                object: organization
+        # Pointer to parent organization.
+        organization:
+          directly_related_user_types:
+            - type: organization
+      permissions:
+        can_read:
+          union:
+            - child: viewer
+        can_edit:
+          union:
+            - child: editor
+        can_delete:
+          union:
+            - child: owner
+        can_share:
+          union:
+            - child: admin
+        can_query:
+          union:
+            - child: viewer
+
+    # ---- Document ------------------------------------------------------------
+    # Individual documents (papers, reports, guides, etc.) within a repo.
+    # Inherits viewer/editor from parent repository.
+    - type: document
+      relations:
+        owner:
+          directly_related_user_types:
+            - type: user
+        admin:
+          union:
+            - child: owner
+            - directly_related_user_types:
+                - type: user
+        editor:
+          union:
+            - child: admin
+            - directly_related_user_types:
+                - type: user
+        viewer:
+          union:
+            - child: editor
+            - directly_related_user_types:
+                - type: user
+        # Pointer to parent repository.
+        repository:
+          directly_related_user_types:
+            - type: repository
+      permissions:
+        # Readers include direct viewers AND viewers of the parent repo.
+        can_read:
+          union:
+            - child: viewer
+            - computedUserset:
+                relation: viewer
+                object: repository
+        can_edit:
+          union:
+            - child: editor
+            - computedUserset:
+                relation: editor
+                object: repository
+        can_delete:
+          union:
+            - child: owner
+            - computedUserset:
+                relation: owner
+                object: repository
+        can_share:
+          union:
+            - child: admin
+            - computedUserset:
+                relation: admin
+                object: repository
+        can_query:
+          union:
+            - child: viewer
+            - computedUserset:
+                relation: viewer
+                object: repository
+
+    # ---- Section -------------------------------------------------------------
+    # Sub-sections within a document.  Used for fine-grained access control
+    # on sensitive parts of a larger document.
+    - type: section
+      relations:
+        owner:
+          directly_related_user_types:
+            - type: user
+        editor:
+          union:
+            - child: owner
+            - directly_related_user_types:
+                - type: user
+        viewer:
+          union:
+            - child: editor
+            - directly_related_user_types:
+                - type: user
+        # Pointer to parent document.
+        document:
+          directly_related_user_types:
+            - type: document
+      permissions:
+        can_read:
+          union:
+            - child: viewer
+            - computedUserset:
+                relation: viewer
+                object: document
+        can_edit:
+          union:
+            - child: editor
+            - computedUserset:
+                relation: editor
+                object: document
+        can_delete:
+          union:
+            - child: owner
+            - computedUserset:
+                relation: owner
+                object: document
+
+    # ---- Code Block ----------------------------------------------------------
+    # Individual code snippets embedded in documents.  Inherits access from
+    # the parent section.
+    - type: code_block
+      relations:
+        owner:
+          directly_related_user_types:
+            - type: user
+        editor:
+          union:
+            - child: owner
+            - directly_related_user_types:
+                - type: user
+        viewer:
+          union:
+            - child: editor
+            - directly_related_user_types:
+                - type: user
+        # Pointer to parent section.
+        section:
+          directly_related_user_types:
+            - type: section
+      permissions:
+        can_read:
+          union:
+            - child: viewer
+            - computedUserset:
+                relation: viewer
+                object: section
+        can_edit:
+          union:
+            - child: editor
+            - computedUserset:
+                relation: editor
+                object: section
+
+# ---------------------------------------------------------------------------
+# Conditional Policies
+# ---------------------------------------------------------------------------
+# These rules augment the base model with contextual constraints.
+# In a full deployment these are encoded as Cedar conditions.
+# ---------------------------------------------------------------------------
+conditional_policies:
+
+  # Viewers can only read documents that are marked as "published".
+  - name: viewer_read_published_only
+    description: >
+      Users with the "viewer" role can only read documents where the
+      "published" attribute is true.  Editors and admins are exempt.
+    condition:
+      attribute: document.published
+      operator: equals
+      value: true
+    exempt_roles:
+      - editor
+      - admin
+      - owner
+
+  # Documents marked as "confidential" require explicit viewer assignment.
+  - name: confidential_requires_explicit_access
+    description: >
+      Documents tagged "confidential" do NOT inherit repository-level
+      viewer access.  Only users explicitly assigned as viewers (or
+      editors/admins/owners) can read them.
+    condition:
+      attribute: document.confidential
+      operator: equals
+      value: true
+    override_inheritance: true
+
+  # Audit documents can only be read by users with the "auditor" tag.
+  - name: audit_documents_restricted
+    description: >
+      Documents in the "auditing-and-compliance-ai" repo that are tagged
+      as audit documents require explicit viewer assignment, even if the
+      user has org_member access.
+    condition:
+      attribute: document.is_audit
+      operator: equals
+      value: true
+    required_relation: explicit_viewer
+
+# ---------------------------------------------------------------------------
+# Predefined Role Assignments
+# ---------------------------------------------------------------------------
+# Initial role assignments for bootstrap.  These are written as FGA tuples
+# on first deployment.
+# ---------------------------------------------------------------------------
+initial_assignments:
+
+  organization:
+    - resource: "organization:senso-ai"
+      relations:
+        owner:
+          - "user:admin@senso-ai.com"
+        admin:
+          - "user:platform-lead@senso-ai.com"
+        member:
+          - "user:*"  # All authenticated users are org members
+
+  # Example: Financial repo restricted to finance team
+  - resource: "repository:financial-data-ai"
+    relations:
+      owner:
+        - "user:cfo@senso-ai.com"
+      admin:
+        - "user:finance-lead@senso-ai.com"
+      editor:
+        - "user:financial-analyst@senso-ai.com"
+      viewer: []  # No org-level inheritance (confidential repo)
+
+  # Example: Open repos accessible to all org members
+  - resource: "repository:computer-vision-ai"
+    relations:
+      owner:
+        - "user:cv-lead@senso-ai.com"
+      admin:
+        - "user:ml-engineer@senso-ai.com"
+      organization:
+        - "organization:senso-ai"  # Inherits org members as viewers
+
+  - resource: "repository:natural-language-processing-ai"
+    relations:
+      owner:
+        - "user:nlp-lead@senso-ai.com"
+      organization:
+        - "organization:senso-ai"
+
+  - resource: "repository:reinforcement-learning-ai"
+    relations:
+      owner:
+        - "user:rl-lead@senso-ai.com"
+      organization:
+        - "organization:senso-ai"
+
+  - resource: "repository:generative-models-ai"
+    relations:
+      owner:
+        - "user:genai-lead@senso-ai.com"
+      organization:
+        - "organization:senso-ai"
+
+  - resource: "repository:mlops-and-deployment-ai"
+    relations:
+      owner:
+        - "user:mlops-lead@senso-ai.com"
+      organization:
+        - "organization:senso-ai"
+
+  - resource: "repository:ethical-ai-and-fairness"
+    relations:
+      owner:
+        - "user:ethics-lead@senso-ai.com"
+      organization:
+        - "organization:senso-ai"
+
+  - resource: "repository:time-series-forecasting-ai"
+    relations:
+      owner:
+        - "user:forecast-lead@senso-ai.com"
+      organization:
+        - "organization:senso-ai"
+
+  - resource: "repository:recommendation-systems-ai"
+    relations:
+      owner:
+        - "user:recsys-lead@senso-ai.com"
+      organization:
+        - "organization:senso-ai"
+
+  - resource: "repository:graph-neural-networks-ai"
+    relations:
+      owner:
+        - "user:gnn-lead@senso-ai.com"
+      organization:
+        - "organization:senso-ai"
+
+  - resource: "repository:robotics-and-control-ai"
+    relations:
+      owner:
+        - "user:robotics-lead@senso-ai.com"
+      organization:
+        - "organization:senso-ai"
+
+  - resource: "repository:audio-and-speech-ai"
+    relations:
+      owner:
+        - "user:audio-lead@senso-ai.com"
+      organization:
+        - "organization:senso-ai"
+
+  - resource: "repository:explainable-ai-ai"
+    relations:
+      owner:
+        - "user:xai-lead@senso-ai.com"
+      organization:
+        - "organization:senso-ai"
+
+  - resource: "repository:auditing-and-compliance-ai"
+    relations:
+      owner:
+        - "user:compliance-officer@senso-ai.com"
+      admin:
+        - "user:auditor@senso-ai.com"
+      viewer: []  # Explicit assignment only
+
+  - resource: "repository:privacy-preserving-ai"
+    relations:
+      owner:
+        - "user:privacy-lead@senso-ai.com"
+      admin:
+        - "user:dpo@senso-ai.com"  # Data Protection Officer
+      viewer: []  # Explicit assignment only — sensitive privacy data
