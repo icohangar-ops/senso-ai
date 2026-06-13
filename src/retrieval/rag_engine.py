@@ -424,11 +424,27 @@ class PrivateRAGEngine:
             logger.error("Failed to ingest document %s into vector store: %s", document_id, exc)
             raise
 
-        # Create FGA policy.
+        # Create FGA policy.  If this fails after the vector-store write
+        # succeeded, the document would be searchable but unprotected — the
+        # two stores must not diverge.  Roll back the vector-store write so
+        # ingest is all-or-nothing (fail closed: no orphaned document).
         try:
             self.fga_client.create_policy_from_document_policy(access_policy)
         except Exception as exc:
             logger.error("Failed to create FGA policy for document %s: %s", document_id, exc)
+            try:
+                self.vector_store.delete_document(document_id)
+                logger.warning(
+                    "Rolled back vector-store write for %s after FGA policy failure",
+                    document_id,
+                )
+            except Exception as rollback_exc:  # pragma: no cover - best effort
+                logger.critical(
+                    "INGEST_DIVERGENCE document=%s left in vector store without an "
+                    "FGA policy; rollback failed: %r",
+                    document_id,
+                    rollback_exc,
+                )
             raise
 
         logger.info(

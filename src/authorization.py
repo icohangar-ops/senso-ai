@@ -32,6 +32,8 @@ from auth0_fga.models import (
     Role,
 )
 
+from cubiczan_resilience import RetriesExhausted, resilient
+
 logger = logging.getLogger(__name__)
 
 _DEFAULT_API_URL = "https://api.us1.fga.dev"
@@ -59,6 +61,25 @@ class FGANotFoundError(FGAError):
 
 class FGARateLimitedError(FGAError):
     """Raised when the API rate limit has been exceeded."""
+
+
+class FGATransientError(FGAError):
+    """Raised for transient failures that are safe to retry.
+
+    Covers network errors (``URLError``), HTTP 429 (rate limited) and
+    HTTP 5xx (server) responses.  The :func:`resilient` decorator on
+    :meth:`FGAClient._request` retries these with exponential backoff.
+    """
+
+
+class FGAUnavailableError(FGAError):
+    """Raised when FGA is unreachable after retries are exhausted.
+
+    This is distinct from a clean *no access* decision: it signals that
+    the authorization service itself could not be consulted, letting
+    callers tell "the user has no resources" apart from "FGA is down"
+    while still failing closed (treating the user as having no access).
+    """
 
 
 # ---------------------------------------------------------------------------
@@ -103,7 +124,11 @@ def _parse_response(resp: urllib.request.Request, raw: bytes) -> Dict[str, Any]:
         if status == 404:
             raise FGANotFoundError(f"[{code}] {msg}")
         if status == 429:
-            raise FGARateLimitedError(f"[{code}] {msg}")
+            # Transient: rate-limited requests are safe to retry with backoff.
+            raise FGATransientError(f"[{code}] {msg} (HTTP 429)")
+        if status >= 500:
+            # Transient: server errors are safe to retry with backoff.
+            raise FGATransientError(f"[{code}] {msg} (HTTP {status})")
         raise FGAError(f"[{code}] {msg} (HTTP {status})")
 
     return payload
@@ -158,13 +183,58 @@ class FGAClient:
         """Build a fully-qualified API URL."""
         return f"{self.api_url}{path}"
 
+    def _emit_unavailable_alert(
+        self,
+        operation: str,
+        user_id: str,
+        exc: BaseException,
+    ) -> None:
+        """Emit a metric/alert when FGA is unavailable after retries.
+
+        Logged at CRITICAL with a stable, parseable prefix
+        (``FGA_UNAVAILABLE``) so log-based metrics / alerting can fire on
+        the authorization service being down (distinct from clean access
+        denials).
+        """
+        logger.critical(
+            "FGA_UNAVAILABLE operation=%s user=%s error=%r",
+            operation,
+            user_id,
+            exc,
+        )
+
     def _request(
         self,
         method: str,
         path: str,
         body: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
-        """Execute an HTTP request and return the parsed JSON body."""
+        """Execute an HTTP request and return the parsed JSON body.
+
+        Transient failures (network errors, HTTP 429, HTTP 5xx) are
+        retried up to 3 attempts with exponential backoff + jitter via
+        :func:`resilient`.  Once retries are exhausted the underlying
+        :class:`FGATransientError` is re-raised so callers' existing
+        ``except FGAError`` handling continues to apply.
+        """
+        try:
+            return self._request_with_retry(method, path, body)
+        except RetriesExhausted as exc:
+            # Re-raise the last transient error as an FGAError subclass so
+            # callers that catch FGAError keep their fail-closed behavior.
+            last = exc.last_exc
+            if isinstance(last, FGAError):
+                raise last from exc
+            raise FGATransientError(str(exc)) from exc
+
+    @resilient(timeout=30, max_attempts=3, retryable_exceptions=(FGATransientError,))
+    def _request_with_retry(
+        self,
+        method: str,
+        path: str,
+        body: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Execute one HTTP attempt; retried by :func:`resilient`."""
         url = self._url(path)
         req = _build_request(url, method, body, token=self.api_token)
         logger.debug("FGA request: %s %s", method, url)
@@ -174,7 +244,8 @@ class FGAClient:
                 result = _parse_response(resp, raw)  # type: ignore[arg-type]
                 return result
         except urllib.error.URLError as exc:
-            raise FGAError(f"Network error calling {url}: {exc}") from exc
+            # Network-level failures are transient — let resilient retry them.
+            raise FGATransientError(f"Network error calling {url}: {exc}") from exc
 
     # ---- Authorization model management --------------------------------------
 
@@ -394,66 +465,15 @@ class FGAClient:
         if not items:
             return []
 
-        body = {
-            "tuple_keys": [
-                {
-                    "user": user_id,
-                    "relation": relation,
-                    "object": resource_id,
-                }
-                for relation, resource_id in items
-            ]
-        }
-
-        try:
-            result = self._request(
-                "POST",
-                "/stores/{store_id}/check".format(store_id=self.store_id),
-                body,
-            )
-            # The batch endpoint may return a single decision or an array.
-            raw_results = result if isinstance(result, list) else [result]
-
-            decisions: List[AccessDecision] = []
-            for idx, item in enumerate(items):
-                relation, resource_id = item
-                resp = raw_results[idx] if idx < len(raw_results) else {}
-                allowed = resp.get("allowed", False)
-                decisions.append(
-                    AccessDecision(
-                        allowed=allowed,
-                        resource_id=resource_id,
-                        relation=relation,
-                        reason=(
-                            f"User {user_id} {'has' if allowed else 'does not have'} "
-                            f"{relation} on {resource_id}"
-                        ),
-                    )
-                )
-            return decisions
-
-        except FGAAuthenticationError:
-            logger.error("FGA batch check authentication failed — denying all by default.")
-            return [
-                AccessDecision(
-                    allowed=False,
-                    resource_id=resource_id,
-                    relation=relation,
-                    reason="FGA service authentication failed; access denied by default",
-                )
-                for relation, resource_id in items
-            ]
-        except FGAError as exc:
-            logger.error("FGA batch_check_access error: %s", exc)
-            return [
-                AccessDecision(
-                    allowed=False,
-                    resource_id=resource_id,
-                    relation=relation,
-                    reason=f"FGA service error: {exc}",
-                )
-                for relation, resource_id in items
-            ]
+        # The FGA ``/check`` endpoint evaluates exactly one ``tuple_key`` per
+        # request — it has no ``tuple_keys`` batch form, so the previous
+        # single-call implementation silently returned bogus decisions.
+        # Issue one correct ``/check`` per item and reuse :meth:`check_access`,
+        # which already fails closed (deny) on auth and service errors.
+        return [
+            self.check_access(user_id, relation, resource_id)
+            for relation, resource_id in items
+        ]
 
     # ---- Listing / enumeration -----------------------------------------------
 
@@ -496,7 +516,20 @@ class FGAClient:
                 len(objects),
             )
             return objects
+        except FGATransientError as exc:
+            # FGA was unreachable even after retries.  We still fail closed
+            # (callers should treat the allowlist as empty), but raise a
+            # structured error + alert so the caller can distinguish
+            # "user has no access" from "authorization service is down".
+            logger.error("FGA list_resources unavailable after retries: %s", exc)
+            self._emit_unavailable_alert("list_resources", user_id, exc)
+            raise FGAUnavailableError(
+                "FGA list-objects unavailable after retries; "
+                "failing closed with an empty allowlist"
+            ) from exc
         except FGAError as exc:
+            # Non-transient (e.g. auth/not-found): genuinely no access /
+            # misconfiguration — fail closed with an empty allowlist.
             logger.error("FGA list_resources error: %s", exc)
             return []
 

@@ -28,7 +28,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Sequence
 
-from auth0_fga.authorization import FGAClient
+from auth0_fga.authorization import FGAClient, FGAUnavailableError
 from auth0_fga.models import AccessDecision, ResourceType
 
 logger = logging.getLogger(__name__)
@@ -300,6 +300,11 @@ class RetrievalFilter:
                 resource_type=self.resource_type,
             )
             return objects
+        except FGAUnavailableError:
+            # FGA is down (not a clean "no access").  Propagate so the
+            # caller can distinguish service outage from an empty allowlist
+            # and fail closed deliberately rather than silently.
+            raise
         except Exception as exc:
             logger.error("Failed to list accessible repos for %s: %s", user_id, exc)
             return []
