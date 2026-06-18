@@ -230,3 +230,129 @@ dev-c3wp4h1e4gv0t64i.us.auth0.com
 ## License
 
 MIT
+
+---
+
+## Airbyte Integration
+
+senso-ai integrates with the **Airbyte AI Agents Python SDK** to automatically ingest documents from external sources into the RAG knowledge base — replacing the hardcoded in-memory document store with a live, multi-source ingestion pipeline.
+
+### Supported Sources
+
+| Source | What Gets Ingested | Connector |
+|--------|-------------------|-----------|
+| **Notion** | Pages, databases, docs | `notion` |
+| **Confluence** | Wiki pages, blog posts | `confluence` |
+| **Google Drive** | Docs, sheets, PDFs | `google_drive` |
+| **GitHub** | READMEs, code files, issues | `github` |
+| **Airtable** | Records from any base | `airtable` |
+| **Typeform** | Survey responses | `typeform` |
+
+### Architecture
+
+```
+    ┌──────────────────┐     ┌─────────────────────┐     ┌──────────────────┐
+    │  Notion / Confl. │     │  GitHub / GDrive    │     │  Airtable / ...  │
+    └────────┬─────────┘     └──────────┬──────────┘     └────────┬─────────┘
+             │                          │                         │
+             └──────────────┬───────────┴─────────────────────────┘
+                            │
+                   ┌────────▼────────┐
+                   │  Airbyte SDK    │
+                   │  (connectors)   │
+                   └────────┬────────┘
+                            │
+                   ┌────────▼────────┐
+                   │ airbyte_        │
+                   │ ingestion.py    │
+                   │ (fetch + chunk) │
+                   └────────┬────────┘
+                            │
+                   ┌────────▼────────┐
+                   │ PrivateRAG      │
+                   │ Engine.ingest() │
+                   │ + FGA policy    │
+                   └────────┬────────┘
+                            │
+                   ┌────────▼────────┐
+                   │  VectorStore    │
+                   │  (embedded +    │
+                   │   access-ctrl)  │
+                   └─────────────────┘
+```
+
+### Setup
+
+1. **Install the SDK**:
+   ```bash
+   pip install airbyte-agent-sdk
+   ```
+
+2. **Configure credentials** (or set via environment variables):
+   ```bash
+   export AIRBYTE_CLIENT_ID=<your_client_id>
+   export AIRBYTE_CLIENT_SECRET=<your_client_secret>
+   ```
+
+3. **Optionally configure source-specific variables** (see `.env.example`):
+   ```bash
+   export NOTION_DATABASE_ID=xxx
+   export GH_OWNER=myorg
+   export GH_REPO=docs
+   ```
+
+### Usage
+
+#### Sync from a single source
+
+```python
+import asyncio
+from src.airbyte_ingestion import fetch_from_notion, ingest_documents_into_rag
+
+async def main():
+    docs = await fetch_from_notion(database_id="your-database-id")
+    results = await ingest_documents_into_rag(engine, docs)
+    print(results)
+
+asyncio.run(main())
+```
+
+#### Sync from all configured sources
+
+```python
+import asyncio
+from src.airbyte_ingestion import sync_all_sources
+
+results = await sync_all_sources(engine, sources={
+    "notion": {"database_id": "xxx"},
+    "github": {"owner": "myorg", "repo": "docs"},
+    "confluence": {"space_key": "ENG", "limit": 50},
+})
+print(results)
+```
+
+#### MCP Server Access
+
+For AI agent access to knowledge base sources via the Airbyte MCP server:
+
+```python
+from src.airbyte_ingestion import get_mcp_config
+
+config = get_mcp_config()
+print(config["setup"]["claude_code"])
+```
+
+### Graceful Degradation
+
+When the Airbyte SDK is not installed or credentials are missing, the module logs an info message and `is_airbyte_available()` returns `False`. The existing in-memory document store continues to work unchanged.
+
+### Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `AIRBYTE_CLIENT_ID` | Airbyte API client ID | Yes (for Airbyte ingestion) |
+| `AIRBYTE_CLIENT_SECRET` | Airbyte API client secret | Yes (for Airbyte ingestion) |
+| `NOTION_DATABASE_ID` | Notion database to sync | No |
+| `CONFLUENCE_SPACE` | Confluence space key | No |
+| `GH_OWNER` | GitHub repository owner | No |
+| `GH_REPO` | GitHub repository name | No |
