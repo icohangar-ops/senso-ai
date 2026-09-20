@@ -244,19 +244,20 @@ async def ingest_documents_into_rag(
     Returns:
         Summary dict with success/failure counts
     """
-    from auth0_fga.models import DocumentPolicy, PolicyRelation
+    from auth0_fga.models import DocumentPolicy
 
     results = {"success": 0, "failed": 0, "errors": [], "ingested_ids": []}
 
     for doc in documents:
         try:
+            # Grant the default role to every user via the real DocumentPolicy
+            # API (policy_id is a computed property, not a constructor kwarg).
+            role_field = {"admin": "admins", "editor": "editors", "viewer": "viewers"}.get(
+                default_role, "viewers"
+            )
             policy = DocumentPolicy(
-                policy_id=f"policy_{doc.document_id}",
                 resource_id=default_policy_resource,
-                document_id=doc.document_id,
-                relations=[
-                    PolicyRelation(relation=default_role, users=["*"]),
-                ],
+                **{role_field: ["*"]},
             )
 
             engine.ingest(
