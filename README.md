@@ -17,7 +17,7 @@ senso-ai is an enterprise-grade AI knowledge base that aggregates research paper
 - **Dual-stage filtering** (pre-filter + post-filter) eliminates unauthorized access
 - **Cedar authorization model** with role hierarchy and conditional policies
 - **Full audit trail** for every access decision
-- **Zero external dependencies** — uses only `urllib.request` for HTTP calls
+- **Zero third-party HTTP dependencies** — HTTP calls use only `urllib.request`; retry resilience comes from the `cubiczan-resilience` package (see `requirements.txt`)
 - **Production-quality Python** with type hints, docstrings, and logging
 
 ---
@@ -68,6 +68,7 @@ senso-ai is an enterprise-grade AI knowledge base that aggregates research paper
 - Python 3.9+
 - Auth0 account with FGA enabled
 - Auth0 Domain: `dev-c3wp4h1e4gv0t64i.us.auth0.com`
+- The `auth0_fga` and `retrieval` packages live under `src/` — run the snippets below with `PYTHONPATH=src` (see `src/__init__.py`)
 
 ### Configuration
 
@@ -198,13 +199,25 @@ senso-ai/
 │   │   ├── models.py                # Data models, role hierarchy, Cedar model
 │   │   ├── retrieval_filter.py      # Dual-stage RAG retrieval filter
 │   │   └── policy_config.yaml       # Policy configuration (YAML)
-│   └── retrieval/
-│       ├── __init__.py              # Package exports
-│       └── rag_engine.py            # PrivateRAGEngine — full RAG pipeline
+│   ├── retrieval/
+│   │   ├── __init__.py              # Package exports
+│   │   └── rag_engine.py            # PrivateRAGEngine — full RAG pipeline
+│   └── airbyte_ingestion.py         # Airbyte ingestion (Notion, Confluence, GitHub)
+├── auth0_fga_rag/                   # Self-contained FGA-filtered RAG demo
+│   ├── demo.py                      # python -m auth0_fga_rag.demo (simulated mode)
+│   ├── document_store.py            # 14 sample documents + FGA-filtered search
+│   ├── fga_client.py                # FGA client with in-memory simulated mode
+│   └── rag_engine.py                # RAG engine with FGA guardrails
 ├── schema/
 │   └── authorization_model.cedar    # Cedar authorization model
 ├── docs/
 │   └── auth0-fga-integration.md    # Integration documentation
+├── tests/                           # pytest evidence suite (see CI `tests` job)
+├── scripts/                         # Deterministic claim-verification scripts
+├── evidence/
+│   └── matrix.yaml                  # Claim → evidence matrix (CI-verified)
+├── tools/
+│   └── verify_evidence_matrix.py    # Fail-closed matrix verifier
 └── README.md                        # This file
 ```
 
@@ -213,9 +226,9 @@ senso-ai/
 ## Technology Stack
 
 - **Auth0 FGA** — Fine-grained authorization using Cedar policy language
-- **Python 3.9+** — Zero external dependencies for FGA modules
+- **Python 3.9+** — FGA modules use only the standard library plus `cubiczan-resilience` for retry resilience
 - **Cedar** — Auth0's authorization policy language (Open Policy Agent compatible)
-- **urllib.request** — HTTP client (no third-party dependencies)
+- **urllib.request** — HTTP client (no third-party HTTP dependencies)
 
 ---
 
@@ -239,14 +252,23 @@ senso-ai integrates with the **Airbyte AI Agents Python SDK** to automatically i
 
 ### Supported Sources
 
-| Source | What Gets Ingested | Connector |
-|--------|-------------------|-----------|
-| **Notion** | Pages, databases, docs | `notion` |
-| **Confluence** | Wiki pages, blog posts | `confluence` |
+Fetchers implemented in `src/airbyte_ingestion.py`:
+
+| Source | What Gets Ingested | Connector | Fetcher |
+|--------|-------------------|-----------|---------|
+| **Notion** | Pages, databases, docs | `notion` | `fetch_from_notion` |
+| **Confluence** | Wiki pages, blog posts | `confluence` | `fetch_from_confluence` |
+| **GitHub** | READMEs, code files, issues | `github` | `fetch_from_github` |
+
+Named in `.env.example` but **not yet implemented** (planned):
+
+| Source | What Would Be Ingested | Connector |
+|--------|-----------------------|-----------|
 | **Google Drive** | Docs, sheets, PDFs | `google_drive` |
-| **GitHub** | READMEs, code files, issues | `github` |
 | **Airtable** | Records from any base | `airtable` |
 | **Typeform** | Survey responses | `typeform` |
+
+`sync_all_sources()` dispatches the three implemented fetchers.
 
 ### Architecture
 
@@ -356,3 +378,15 @@ When the Airbyte SDK is not installed or credentials are missing, the module log
 | `CONFLUENCE_SPACE` | Confluence space key | No |
 | `GH_OWNER` | GitHub repository owner | No |
 | `GH_REPO` | GitHub repository name | No |
+
+---
+
+## Evidence Matrix
+
+Every capability claim in this file is backed by `evidence/matrix.yaml`; CI refuses builds while any row is unverifiable. Run locally:
+
+```bash
+python3 tools/verify_evidence_matrix.py
+```
+
+The verifier is a stdlib-only script (vendored, version-stamped from the `consensus-hardening-protocol` standard kit). It executes or statically resolves every evidence reference — tests, scripts, manifest fields, artifact hashes — and exits non-zero if any claim lacks verifiable evidence. The `evidence-matrix` CI job runs it before any install step.
