@@ -25,9 +25,9 @@ Build an internal-facing knowledge assistant that sources answers from a documen
                                                      │   Auth0 FGA      │
                                                      │   Access Check   │
                                                      │                  │
-                                                     │  doc:budget_Q4   │──▶ ✓ Alice can read
-                                                     │  doc:salary_2026 │──▶ ✗ Alice DENIED
-                                                     │  doc:handbook    │──▶ ✓ Alice can read
+                                                     │  budget_Q4_2025  │──▶ ✓ Alice can read
+                                                     │  salary_band_guide │─▶ ✗ Alice DENIED
+                                                     │  company_handbook │──▶ ✓ Alice can read
                                                      └────────┬─────────┘
                                                               │
                                                               ▼
@@ -76,9 +76,9 @@ auth0_fga_rag/
 ├── fga_config.py              # Auth0 FGA API configuration
 ├── authorization_model.py     # FGA authorization model definition
 ├── fga_client.py              # Auth0 FGA API client (check/write/list)
-├── document_store.py          # Document database with 13 sample documents
+├── document_store.py          # Document database with 14 sample documents
 ├── rag_engine.py              # RAG engine with FGA-filtered retrieval
-├── demo.py                    # Interactive demo script
+├── demo.py                    # Demo script (runs offline in simulated mode)
 └── README.md                  # This file
 ```
 
@@ -86,35 +86,38 @@ auth0_fga_rag/
 
 | User | Role | Department | Accessible Docs |
 |------|------|-----------|----------------|
-| Alice | Finance Manager | Finance | Budget, Forecast, Salary (Finance), Public |
-| Bob | HR Intern | HR | Benefits Summary, Public only |
-| Carol | Engineering Analyst | Engineering | Architecture, Code Review, Oncall, Public |
+| Alice | Finance Manager | Finance | Q4 Budget, Revenue Forecast, Salary Band Guide, Public docs |
+| Bob | HR Intern | HR | Public docs only |
+| Carol | Engineering Analyst | Engineering | Architecture, Code Review, Incident Postmortem, Public docs |
 | Dave | CEO | Executive | **ALL documents** (unrestricted) |
 
 ### Sample Documents
 
-| Document ID | Department | Sensitivity | Accessible By |
-|-------------|-----------|-------------|---------------|
-| `doc:finance_budget_q4` | Finance | Confidential | Finance, Executive |
-| `doc:finance_forecast_2026` | Finance | Internal | Finance, Executive |
-| `doc:finance_salary_review` | Finance | Top Secret | Executive only |
-| `doc:hr_benefits_summary` | HR | Internal | HR, Executive |
-| `doc:hr_performance_reviews` | HR | Confidential | HR Managers, Executive |
-| `doc:hr_salary_structure` | HR | Top Secret | Executive only |
-| `doc:eng_architecture_overview` | Engineering | Internal | Engineering, Executive |
-| `doc:eng_code_review_process` | Engineering | Internal | Engineering, Executive |
-| `doc:eng_oncall_schedule` | Engineering | Public | Everyone |
-| `doc:exec_strategy_2026` | Executive | Top Secret | Executive only |
-| `doc:exec_ma_plans` | Executive | Top Secret | Executive only |
-| `doc:public_handbook` | Company | Public | Everyone |
-| `doc:public_org_chart` | Company | Public | Everyone |
+`document_store.py` ships 14 sample documents (`SAMPLE_DOCUMENTS`):
+
+| Document ID | Department | Sensitivity | Owner |
+|-------------|-----------|-------------|-------|
+| `budget_Q4_2025` | Finance | Confidential | `user:alice` |
+| `revenue_forecast_2025` | Finance | Confidential | `user:alice` |
+| `salary_band_guide` | HR | Restricted | `user:hr_director` |
+| `executive_comp_report` | HR | Restricted | `user:dave` |
+| `performance_reviews_Q4` | HR | Confidential | `user:hr_director` |
+| `architecture_v3` | Engineering | Internal | `user:carol` |
+| `code_review_standards` | Engineering | Internal | `user:carol` |
+| `incident_postmortem_2024_12` | Engineering | Internal | `user:carol` |
+| `ma_strategy_2025` | Executive | Restricted | `user:dave` |
+| `company_strategy_2025` | Executive | Restricted | `user:dave` |
+| `board_deck_Q4` | Executive | Restricted | `user:dave` |
+| `company_handbook` | Public | Public | `user:hr_director` |
+| `org_chart` | Public | Public | `user:hr_director` |
+| `engineering_tech_stack` | Public | Public | `user:carol` |
 
 ## Quick Start
 
 ### Prerequisites
 
 - Python 3.11+
-- `requests` library (usually pre-installed)
+- `requests` (`pip install requests`) — imported by the FGA client for the live-API path; the demo itself runs offline in simulated mode
 
 ### Run the Demo
 
@@ -127,7 +130,7 @@ No Auth0 credentials required — the demo runs in simulated mode with an in-mem
 
 ### Output
 
-The demo runs the same query (`"What is the company's financial outlook?"`) for 4 different users and shows:
+The demo runs the same query (`"What is the company's financial outlook and strategy?"`) for 4 different users and shows:
 
 1. **Individual FGA checks** — Each document is checked: ✓ ALLOWED or ✗ DENIED
 2. **RAG retrieval results** — Only accessible documents appear in results
@@ -173,3 +176,7 @@ Then run the demo — it will use the real FGA API for authorization checks.
 - **Auth0 FGA** (Fine-Grained Authorization)
 - **RAG** (Retrieval-Augmented Generation)
 - **requests** (HTTP client)
+
+## Evidence Matrix
+
+Every capability claim in this file is backed by `evidence/matrix.yaml` at the repository root; CI refuses builds while any row is unverifiable (`python3 tools/verify_evidence_matrix.py`).

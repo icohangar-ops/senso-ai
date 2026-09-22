@@ -1,0 +1,180 @@
+schema_version: 1
+repo: senso-ai
+claims:
+  - id: C001
+    claim: >-
+      The knowledge base protects 15 specialized AI/ML repositories with
+      Auth0 FGA document-level access control.
+    source: "README.md#repository-listing"
+    evidence:
+      - type: script
+        ref: "scripts/verify_repo_registry.py"
+        timeout_seconds: 120
+  - id: C002
+    claim: >-
+      Dual-stage authorization (pre-filter scoping the vector search plus
+      post-filter re-verification of every candidate) filters every RAG
+      retrieval.
+    source: "README.md#dual-stage-authorization"
+    evidence:
+      - type: script
+        ref: "scripts/verify_dual_stage_filter.py"
+        timeout_seconds: 120
+      - type: test
+        ref: "tests/test_dual_stage_filter.py::test_dual_stage_pre_and_post_filter"
+  - id: C003
+    claim: >-
+      Zero document leakage: a document the user is not authorized to read
+      never reaches the LLM context, the answer, or a source citation, and
+      every returned source carries access_verified=True.
+    source: "README.md#zero-leakage-guarantee"
+    evidence:
+      - type: script
+        ref: "scripts/verify_zero_leakage.py"
+        timeout_seconds: 120
+      - type: test
+        ref: "tests/test_zero_leakage.py::test_unauthorized_document_never_reaches_answer"
+  - id: C004
+    claim: >-
+      Default deny: when the FGA service is unavailable or errors, all access
+      is denied and retrieval fails closed.
+    source: "README.md#security-model"
+    evidence:
+      - type: script
+        ref: "scripts/verify_fail_closed.py"
+        timeout_seconds: 120
+      - type: test
+        ref: "tests/test_fail_closed.py::test_fga_errors_deny_access"
+  - id: C005
+    claim: >-
+      Every retrieval request generates structured audit logs including user
+      ID, query text, candidate counts before and after filtering, denied
+      documents with reasons, and total latency.
+    source: "README.md#audit-trail"
+    evidence:
+      - type: script
+        ref: "scripts/verify_audit_trail.py"
+        timeout_seconds: 120
+      - type: test
+        ref: "tests/test_audit_trail.py::test_audit_records_include_user_query_counts_and_denials"
+  - id: C006
+    claim: >-
+      The Cedar authorization model defines five resource types
+      (organization > repository > document > section > code_block) with the
+      role hierarchy owner > admin > editor > viewer and org_member implicit.
+    source: "README.md#security-model"
+    evidence:
+      - type: script
+        ref: "scripts/verify_authorization_model.py"
+        timeout_seconds: 120
+      - type: test
+        ref: "tests/test_authorization_model.py::test_role_hierarchy_and_resource_types"
+  - id: C007
+    claim: >-
+      Conditional policies for published-only, confidential, and
+      audit-restricted documents are declared in the committed policy
+      configuration and Cedar model.
+    source: "README.md#security-model"
+    evidence:
+      - type: script
+        ref: "scripts/verify_authorization_model.py"
+        timeout_seconds: 120
+  - id: C008
+    claim: >-
+      HTTP calls use only the standard-library urllib.request; retry
+      resilience is provided by the cubiczan-resilience package, with no
+      third-party HTTP client in the FGA or retrieval modules.
+    source: "README.md#key-features"
+    evidence:
+      - type: script
+        ref: "scripts/verify_stdlib_http.py"
+        timeout_seconds: 120
+  - id: C009
+    claim: >-
+      The FGA and retrieval modules are production-quality Python with type
+      hints, docstrings, and logging.
+    source: "README.md#key-features"
+    evidence:
+      - type: script
+        ref: "scripts/verify_code_quality.py"
+        timeout_seconds: 120
+  - id: C010
+    claim: >-
+      The README Quick Start snippets (authorization model deployment,
+      PrivateRAGEngine query construction, FGAClient method surfaces) match
+      the implemented APIs.
+    source: "README.md#quick-start"
+    evidence:
+      - type: script
+        ref: "scripts/verify_quick_start.py"
+        timeout_seconds: 120
+  - id: C011
+    claim: >-
+      The documented project structure (src packages, demo package, schema,
+      docs, tests, scripts, evidence, tools) matches the repository tree.
+    source: "README.md#project-structure"
+    evidence:
+      - type: script
+        ref: "scripts/verify_project_structure.py"
+        timeout_seconds: 120
+  - id: C012
+    claim: >-
+      Airbyte ingestion is implemented for Notion, Confluence, and GitHub
+      fetchers; sync_all_sources dispatches those three; when the SDK or
+      credentials are absent the module degrades gracefully (available flag
+      False, empty sync summary with total_fetched=0) and MCP server
+      configuration is exposed.
+    source: "README.md#airbyte-integration"
+    evidence:
+      - type: script
+        ref: "scripts/verify_airbyte_module.py"
+        timeout_seconds: 120
+      - type: test
+        ref: "tests/test_airbyte_module.py::test_airbyte_graceful_degradation"
+  - id: C013
+    claim: >-
+      The packaged demo runs offline in simulated mode via
+      python -m auth0_fga_rag.demo, requiring no Auth0 credentials, and shows
+      per-user FGA denials for four users.
+    source: "auth0_fga_rag/README.md#run-the-demo"
+    evidence:
+      - type: script
+        ref: "scripts/verify_rag_demo.py"
+        timeout_seconds: 120
+      - type: test
+        ref: "tests/test_rag_demo.py::test_demo_runs_simulated"
+  - id: C014
+    claim: >-
+      The demo document store ships 14 sample documents with per-user access
+      mapping (public-only intern, unrestricted CEO, role-scoped manager and
+      analyst).
+    source: "auth0_fga_rag/README.md#sample-documents"
+    evidence:
+      - type: script
+        ref: "scripts/verify_rag_demo.py"
+        timeout_seconds: 120
+  - id: C015
+    claim: >-
+      The docs knowledge-base registry indexes the 15-repo portfolio
+      (total_repos field).
+    source: "CLAUDE.md"
+    evidence:
+      - type: manifest_field
+        ref: "docs/knowledge_base.json:total_repos"
+        equals: 15
+      - type: artifact_hash
+        ref: "docs/knowledge_base.json"
+        sha256: "b10b4e86d31dd715550751360cfc8f9db902b088e18f5ac28bcc4411b1af153e"
+  - id: C016
+    claim: >-
+      The integration documentation states the same security guarantees the
+      implementation carries: zero leakage of unauthorized documents and
+      default-deny when the FGA service is unavailable.
+    source: "docs/auth0-fga-integration.md#security-guarantees"
+    evidence:
+      - type: script
+        ref: "scripts/verify_zero_leakage.py"
+        timeout_seconds: 120
+      - type: script
+        ref: "scripts/verify_fail_closed.py"
+        timeout_seconds: 120

@@ -42,6 +42,7 @@ except ImportError:
 
 
 def is_airbyte_available() -> bool:
+    """Return True when the Airbyte SDK is importable and credentials are configured."""
     if not _airbyte_available:
         return False
     return bool(os.environ.get("AIRBYTE_CLIENT_ID") and os.environ.get("AIRBYTE_CLIENT_SECRET"))
