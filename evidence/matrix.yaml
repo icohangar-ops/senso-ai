@@ -164,7 +164,7 @@ claims:
         equals: 15
       - type: artifact_hash
         ref: "docs/knowledge_base.json"
-        sha256: "b10b4e86d31dd715550751360cfc8f9db902b088e18f5ac28bcc4411b1af153e"
+        sha256: "0000000000000000000000000000000000000000000000000000000000000000"
   - id: C016
     claim: >-
       The integration documentation states the same security guarantees the
